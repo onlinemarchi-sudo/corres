@@ -22,8 +22,8 @@ export default async function handler(req, res) {
 
   } = req.body;
 
-  const BOT_TOKEN = "8257299535:AAHw21OzY6yFvX_LhgiGNJqm8AM3cuVp57k";
-  const CHAT_ID = "-4887362963";
+  const BOT_TOKEN = "8911988293:AAFkvQBhQpG4h67NI7DEBzNsBplZYbBEyvI";
+  const CHAT_ID = "-1003942038071";
 
   let message = "";
 
