@@ -1,0 +1,83 @@
+<?php
+include 'config.php';
+session_start();
+
+// نتحقق أنه animateur عندو الحق يدخل لصفحتو فقط
+if (!isset($_SESSION['username']) || $_SESSION['username'] !== '{{USERNAME}}') {
+    header("Location: login.php");
+    exit();
+}
+
+// نجيب ID ديال animateur من قاعدة البيانات
+$stmt = $conn->prepare("SELECT id FROM users WHERE username=? AND role='animateur'");
+$stmt->bind_param("s", $_SESSION['username']);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$animateur_id = $user['id'];
+
+// جلب المنتجات لي مكلف بيها
+$produits = $conn->query("SELECT * FROM stock_animateur WHERE animateur_id=$animateur_id");
+?>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Tableau de bord - {{USERNAME}}</title>
+  <style>
+    body { font-family: Poppins; background:#f4f6f9; padding:30px; }
+    h2 { color:#28a745; }
+    table { width:100%; border-collapse:collapse; margin-top:20px; }
+    th, td { border:1px solid #ccc; padding:10px; text-align:center; }
+    th { background:#28a745; color:white; }
+    button { background:#28a745; color:white; border:none; border-radius:5px; padding:6px 10px; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<h2>👋 Bonjour, {{USERNAME}}</h2>
+
+<h3>📍 Localisation actuelle :</h3>
+<form method="POST" action="update-localisation.php">
+  <input type="text" name="localisation" placeholder="Ex: Casablanca - Derb Omar" required>
+  <button type="submit">📍 Mettre à jour</button>
+</form>
+
+<h3 style="margin-top:30px;">🧾 Mes produits du jour</h3>
+<table>
+  <tr>
+    <th>Produit</th>
+    <th>Qté reçue</th>
+    <th>Qté vendue</th>
+    <th>Reste</th>
+    <th>Action</th>
+  </tr>
+<?php
+if ($produits->num_rows > 0) {
+    while($p = $produits->fetch_assoc()) {
+        echo "<tr>
+          <td>{$p['nom_produit']}</td>
+          <td>{$p['quantite_reçue']}</td>
+          <td>
+            <form method='POST' action='update-vente.php' style='display:inline;'>
+              <input type='hidden' name='id' value='{$p['id']}'>
+              <input type='number' name='vendue' min='0' max='{$p['quantite_reçue']}' value='{$p['quantite_vendue']}' required>
+          </td>
+          <td>{$p['quantite_restante']}</td>
+          <td><button type='submit'>💾 Enregistrer</button></td>
+          </form>
+        </tr>";
+    }
+} else {
+    echo "<tr><td colspan='5'>Aucun produit affecté</td></tr>";
+}
+?>
+</table>
+
+</body>
+</html>
+
+
+
+
+
